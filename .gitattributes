@@ -7,6 +7,6 @@
 *.yml text
 *.md text
 
-# Evita conflictos en binarios
+#Evita conflictos en binarios
 *.jar binary
 *.zip binary
