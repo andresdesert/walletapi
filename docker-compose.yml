@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  walletapi:
+    build: .
+    container_name: cyberwallet-api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  db:
+    image: postgres:15
+    container_name: cyberwallet-db
+    environment:
+      POSTGRES_DB: cyberwallet
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tu_password_postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres-data:
