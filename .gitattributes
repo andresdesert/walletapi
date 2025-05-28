@@ -1,0 +1,12 @@
+# Asegura que todos los archivos de texto usen LF (fin de línea de Unix)
+* text=auto eol=lf
+
+# Archivos relevantes a tratar como texto plano (para ver bien en diffs)
+*.java text
+*.xml text
+*.yml text
+*.md text
+
+# Evita conflictos en binarios
+*.jar binary
+*.zip binary

@@ -1,0 +1,50 @@
+# 🔐 Secretos y configuraciones privadas
+.env
+*.env
+.env.*
+
+# 🛠 Archivos de configuración local
+*.local
+*.override
+
+# 🧪 Archivos generados por pruebas
+*.postman_collection.json
+*.test.js
+*.coverage
+coverage/
+test-output/
+
+# 📄 Logs y temporales
+*.log
+*.tmp
+*.swp
+*.swo
+hs_err_pid*
+
+# 🧠 Archivos de IDE y compilación
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+target/
+build/
+
+# 🧱 Maven
+.mvn/
+dependency-reduced-pom.xml
+
+# 🔁 CI/CD (para ignorar archivos temporales de pipelines)
+.pipeline/
+.github/
+
+# 📦 Distribuciones y empaquetados
+dist/
+release/
+*.jar
+*.war
+*.zip
+
+# 💣 Seguridad extra
+.DS_Store
+Thumbs.db
