@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Define ruta del archivo de errores -->
+    <property name="USER_HOME" value="${USER_HOME:-${user.home}}"/>
+    <property name="TEST_LOG" value="${USER_HOME}/Desktop/Test-error.log"/>
+
+    <!-- Formato limpio y corto para archivo -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${TEST_LOG}</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%level] %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Consola minimalista con rastreabilidad (includeCallerData) -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} [%level] %msg%n</pattern>
+            <includeCallerData>true</includeCallerData>
+        </encoder>
+    </appender>
+
+    <!-- Solo errores capturados -->
+    <root level="ERROR">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />
+
+</configuration>

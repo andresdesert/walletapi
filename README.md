@@ -1,146 +1,139 @@
-# 🏦 CyberWallet API
+# 🧠 CyberWallet API
 
-CyberWallet es una API REST segura y robusta desarrollada con Spring Boot 3, que proporciona autenticación JWT, documentación interactiva con Swagger, monitoreo con Actuator y despliegue completo con Docker y PostgreSQL.
-
----
-
-## 📦 Tecnologías utilizadas
-
-- Java 17
-- Spring Boot 3
-- Spring Security + JWT (HS256)
-- PostgreSQL
-- Swagger (SpringDoc OpenAPI 3)
-- Docker & Docker Compose
-- Actuator (health check personalizado)
-- Maven
-- Lombok
-- Java Dotenv
+CyberWallet es una billetera virtual moderna y robusta, desarrollada con tecnologías de nivel empresarial. Este backend está construido en Java con Spring Boot, JWT para autenticación, PostgreSQL, y un entorno completamente dockerizado, con tests automatizados y documentación Swagger.
 
 ---
 
-## 🚀 Instalación y ejecución
+## 🧩 Tech Stack
 
-### ✅ Requisitos previos
+- ⚙️ Spring Boot 3.x
+- 🔐 Spring Security + JWT (HS256 con clave hex)
+- 🧪 JUnit 5 + Mockito
+- 🧪 Tests de integración con MockMvc
+- 🐳 Docker + Docker Compose
+- 🐘 PostgreSQL
+- 🧾 Swagger UI (OpenAPI 3)
+- 📄 Logback + logging avanzado
+- 🌐 RESTful API
+- ☂️ Global Exception Handler
 
-- Tener Docker y Docker Compose instalados (único requisito)
+---
 
-### ▶️ Levantar el entorno completo
+## 🚀 Quickstart (Docker)
+
+1. Cloná el proyecto:
 
 ```bash
-git clone https://github.com/tuusuario/cyberwallet.git
-cd cyberwallet/walletapi
+git clone https://github.com/TuUsuario/CyberWallet.git
+cd CyberWallet
+```
+
+2. Levantá todo el entorno con Docker:
+
+```bash
 docker-compose up -d --build
 ```
 
-Eso levantará:
-- `cyberwallet-db` (PostgreSQL)
-- `cyberwallet-api` (Backend Spring Boot)
+3. Accedé a Swagger UI:
+
+[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ---
 
-## 🧪 Endpoints disponibles
+## 🔐 Autenticación
 
-### 🔐 Autenticación (`/api/v1/auth`)
+La seguridad se maneja con JWT. Se expone un endpoint de login (`/api/v1/auth/login`) que devuelve un token para ser usado en los headers (`Authorization: Bearer <token>`).
 
-| Método | Endpoint     | Descripción              |
-|--------|--------------|--------------------------|
-| POST   | `/register`  | Registrar nuevo usuario  |
-| POST   | `/login`     | Obtener JWT válido       |
-
-### 🧠 Healthcheck
-
-- `GET /actuator/health` → Verifica salud del backend, conexión a la base de datos y espacio en disco.
+Endpoints protegidos: `/api/v1/user/**`
 
 ---
 
-## 🧾 Documentación interactiva (Swagger UI)
+## 📘 Endpoints
 
-📄 Accedé a Swagger en:
+| Método | Endpoint                  | Seguridad | Descripción                  |
+|--------|---------------------------|-----------|------------------------------|
+| POST   | `/api/v1/auth/register`   | ❌        | Registro de nuevo usuario    |
+| POST   | `/api/v1/auth/login`      | ❌        | Login y generación de token  |
+| GET    | `/api/v1/user/me`         | ✅ JWT    | Perfil del usuario autenticado |
 
-```
-http://localhost:8080/swagger-ui/index.html
-```
-
-Incluye:
-- Autenticación JWT
-- Registro y login
-- Exploración completa de endpoints
+Consulta Swagger para más detalles.
 
 ---
 
-## ⚙️ Variables de entorno
+## 🧪 Testing
 
-Definidas en `.env` y consumidas por Spring vía `DotenvPostProcessor`:
+Tests incluidos:
 
-```
-SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/cyberwallet
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=tu_password_postgres
-SPRING_JPA_HIBERNATE_DDL_AUTO=update
-SPRING_JPA_SHOW_SQL=true
+- ✅ Unitarios (JwtService, excepciones, DTOs)
+- ✅ Integración real con DB embebida (H2)
+- ✅ Manejo robusto de errores (401, 403, excepciones custom)
 
-JWT_SECRET=W9xB0rFeF7hyY6QlA7p1rHzm2QbjFnE1aTwdAk2oYxA=
-```
-
----
-
-## 🔍 Monitoreo y HealthCheck personalizado
-
-Implementado en `CustomHealthIndicator.java`:
-- Verifica espacio en disco
-- Conectividad con base de datos
-- Simulación de servicio externo (puede extenderse)
-
-Integrado automáticamente en Actuator:
-
-```yaml
-GET /actuator/health
-```
-
-Docker detecta automáticamente si el backend está *healthy* para levantar otros contenedores.
-
----
-
-## 🛡️ Seguridad JWT
-
-- Algoritmo: `HS256`
-- Clave: Definida por `.env`, codificada en base64
-- Verificación de firma, expiración y autorización vía filtros personalizados (`JwtAuthenticationFilter`)
-
----
-
-## 👨‍💻 Autor
-
-Desarrollado por **Andres QA**, QA Engineer en transición a QA especializado en Seguridad.
-
----
-
-## 🐳 Estado del sistema
-
-Para verificar que todo esté funcionando:
+Ejecutar tests:
 
 ```bash
-docker ps
-```
-
-Deberías ver ambos contenedores activos:
-
-```
-cyberwallet-api     healthy
-cyberwallet-db      up
+mvn clean test
 ```
 
 ---
 
-## ✅ Roadmap siguiente
+## 📦 Variables de entorno
 
-- [ ] Validaciones avanzadas en los endpoints (formato, longitud, duplicados)
-- [ ] Control de errores global con `@ControllerAdvice`
-- [ ] Tests unitarios con JUnit
-- [ ] Collection de Postman automatizada
-- [ ] Dashboard de métricas y logs
+`.env` (automáticamente cargado por `DotenvPostProcessor`):
+
+```env
+JWT_SECRET=a3f1c6e9b2478f5d92c49f3ee71349afcbe916d3640ffb3a94a6012ccbbd12b3
+```
 
 ---
 
-> ¡Este proyecto fue diseñado por Andres Simahan, para ser educativo, seguro y profesional!
+## 🛠️ Healthcheck
+
+Se expone un `CustomHealthIndicator` y endpoints `/actuator/health`. Puede extenderse para verificar DB, disco, servicios externos.
+
+---
+
+## 📂 Estructura del Proyecto
+
+```
+walletapi/
+├── config/               # Configuraciones de seguridad y Jackson
+├── controller/           # REST Controllers
+├── dto/                  # DTOs de autenticación y otros
+├── entity/               # Entidades JPA
+├── exception/            # Manejo global de errores
+├── repository/           # Interfaces JPA
+├── security/             # JWT y filtros
+├── service/              # Lógica de negocio
+├── integration/          # Tests de integración reales
+└── test/                 # Tests unitarios
+```
+
+---
+
+## 📌 Roadmap (Fase 1 completada ✅)
+
+- [x] Registro y login funcional
+- [x] Seguridad JWT (HS256)
+- [x] Dockerizado (DB + backend)
+- [x] Swagger operativo
+- [x] Manejo de errores avanzado
+- [x] Tests unitarios + integración
+- [x] Logging y serialización configurada
+
+---
+
+## 📬 Contacto
+
+Proyecto educativo y técnico mantenido por **Andres**.  
+En transición de QA a QA Engineer + Pentester.  
+Mentoría y documentación guiada con enfoque profesional.
+
+---
+
+## 🧠 Notas Profesionales
+
+- El sistema está diseñado para ser **portable, robusto y plug & play**.
+- No requiere configuración manual fuera de Docker.
+- Ideal para entornos de CI/CD, pruebas automatizadas y análisis estático.
+
+---

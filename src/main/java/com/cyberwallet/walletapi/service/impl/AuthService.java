@@ -5,6 +5,9 @@ import com.cyberwallet.walletapi.dto.auth.AuthenticationResponse;
 import com.cyberwallet.walletapi.dto.auth.RegisterRequest;
 import com.cyberwallet.walletapi.entity.User;
 import com.cyberwallet.walletapi.enums.Role;
+import com.cyberwallet.walletapi.exception.EmailAlreadyUsedException;
+import com.cyberwallet.walletapi.exception.InvalidCredentialsException;
+import com.cyberwallet.walletapi.exception.UserNotFoundException;
 import com.cyberwallet.walletapi.repository.UserRepository;
 import com.cyberwallet.walletapi.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -33,17 +36,21 @@ public class AuthService {
                     )
             );
         } catch (AuthenticationException ex) {
-            throw new RuntimeException("Credenciales inválidas");
+            throw new InvalidCredentialsException("Credenciales inválidas. Por favor revisá tu email y contraseña.");
         }
 
-        UserDetails user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("No se encontró un usuario con el email: " + request.getEmail()));
 
         String jwtToken = jwtService.generateToken(user);
         return new AuthenticationResponse(jwtToken);
     }
 
     public AuthenticationResponse register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyUsedException("El email ya está registrado: " + request.getEmail());
+        }
+
         var user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())

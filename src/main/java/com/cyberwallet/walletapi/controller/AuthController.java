@@ -6,6 +6,7 @@ import com.cyberwallet.walletapi.dto.auth.RegisterRequest;
 import com.cyberwallet.walletapi.service.impl.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,14 +21,14 @@ public class AuthController {
 
     @Operation(summary = "Iniciar sesión", description = "Autentica al usuario y devuelve un JWT")
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthenticationRequest request) {
         AuthenticationResponse response = authService.authenticate(request);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Registrar nuevo usuario", description = "Crea un nuevo usuario y devuelve un JWT")
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthenticationResponse response = authService.register(request);
         return ResponseEntity.ok(response);
     }
