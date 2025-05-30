@@ -1,6 +1,8 @@
 package com.cyberwallet.walletapi.security;
 
 import com.cyberwallet.walletapi.exception.InvalidTokenException;
+import com.cyberwallet.walletapi.exception.ApiError;
+import com.cyberwallet.walletapi.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Component
@@ -24,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
-    private final ObjectMapper objectMapper; // Inyectado correctamente para errores JSON
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -48,14 +51,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.error("🔴 JWT inválido: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8"); // Forzar UTF-8 en la respuesta
 
-            var error = new com.cyberwallet.walletapi.exception.ApiError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "Unauthorized",
-                    "JWT inválido: " + e.getMessage(),
-                    request.getRequestURI(),
-                    java.time.LocalDateTime.now()
-            );
+            ApiError error = ApiError.builder()
+                    .statusCode(HttpServletResponse.SC_UNAUTHORIZED)
+                    .errorCode(ErrorCode.INVALID_TOKEN)
+                    .message("Acceso no autorizado")
+                    .details("JWT inválido: " + e.getMessage())
+                    .path(request.getRequestURI())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            objectMapper.findAndRegisterModules(); // Para fechas y UTF-8
             objectMapper.writeValue(response.getOutputStream(), error);
             return;
         }

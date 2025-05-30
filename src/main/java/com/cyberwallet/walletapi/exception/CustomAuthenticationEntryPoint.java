@@ -27,8 +27,9 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         ApiError error = ApiError.builder()
                 .statusCode(HttpServletResponse.SC_UNAUTHORIZED)
-                .error("Unauthorized")
+                .errorCode(ErrorCode.INVALID_TOKEN)
                 .message("Acceso no autorizado")
+                .details(authException.getMessage()) // QA-driven: detalle interno
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();

@@ -1,5 +1,7 @@
 package com.cyberwallet.walletapi.exception;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,13 +11,14 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class ApiError {
 
-    private int statusCode;         // Código HTTP (ej: 404)
-    private String error;           // Texto del error (ej: "Not Found")
-    private String message;         // Detalle técnico o de usuario
-    private String path;            // Ruta donde ocurrió
-    private LocalDateTime timestamp; // Momento del error
+    private int statusCode;
+    private ErrorCode errorCode;
+    private String message;
+    private String details;
+    private String path;
+    private LocalDateTime timestamp;
 }

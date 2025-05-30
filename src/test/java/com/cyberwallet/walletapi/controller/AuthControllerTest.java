@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -82,15 +83,17 @@ class AuthControllerTest {
                 .password("secure123")
                 .build();
 
+        // Ajuste QA-driven: usar el constructor QA-driven de la excepción
         when(authService.register(any(RegisterRequest.class)))
-                .thenThrow(new EmailAlreadyUsedException("El email ya está registrado: duplicate@user.com"));
+                .thenThrow(new EmailAlreadyUsedException("duplicate@user.com"));
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(csrf()))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message", containsString("El email ya está registrado")));
+                .andExpect(jsonPath("$.message", containsString("El email ya está registrado")))
+                .andExpect(jsonPath("$.errorCode", is("VALIDATION_ERROR")));
     }
 
     @Test
@@ -115,14 +118,15 @@ class AuthControllerTest {
         AuthenticationRequest request = new AuthenticationRequest("wrong@user.com", "badpass");
 
         when(authService.authenticate(any(AuthenticationRequest.class)))
-                .thenThrow(new InvalidCredentialsException("Credenciales inválidas. Por favor revisá tu email y contraseña."));
+                .thenThrow(new InvalidCredentialsException());
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .with(csrf()))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message", containsString("Credenciales inválidas")));
+                .andExpect(jsonPath("$.message", containsString("Credenciales inválidas")))
+                .andExpect(jsonPath("$.errorCode", is("INVALID_TOKEN")));
     }
 
     @Test
@@ -144,6 +148,7 @@ class AuthControllerTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.message", containsString("firstname: El nombre es obligatorio")))
                 .andExpect(jsonPath("$.message", containsString("email: Formato de email inválido")))
-                .andExpect(jsonPath("$.message", containsString("password: La contraseña debe tener al menos 6 caracteres")));
+                .andExpect(jsonPath("$.message", containsString("password: La contraseña debe tener al menos 6 caracteres")))
+                .andExpect(jsonPath("$.errorCode", is("VALIDATION_ERROR")));
     }
 }

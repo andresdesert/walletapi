@@ -6,8 +6,6 @@ import org.mockito.Mockito;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.io.File;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 
@@ -16,7 +14,6 @@ class CustomHealthIndicatorTest {
     @Test
     @DisplayName("🟢 Health devuelve UP con todos los detalles OK")
     void healthShouldReturnUpWhenSystemHealthy() {
-        // 🛠️ Simular JdbcTemplate con mock
         JdbcTemplate jdbcTemplate = Mockito.mock(JdbcTemplate.class);
         doNothing().when(jdbcTemplate).execute("SELECT 1");
 
@@ -39,8 +36,7 @@ class CustomHealthIndicatorTest {
         CustomHealthIndicator healthIndicator = new CustomHealthIndicator(jdbcTemplate) {
             @Override
             public Health health() {
-                // Simular disco con espacio crítico
-                long criticalSpace = 50 * 1024 * 1024; // 50MB
+                long criticalSpace = 50 * 1024 * 1024;
                 return Health.down()
                         .withDetail("disk", "Espacio en disco crítico")
                         .withDetail("libre", criticalSpace + " bytes")

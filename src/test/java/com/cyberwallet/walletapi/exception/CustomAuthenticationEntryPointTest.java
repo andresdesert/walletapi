@@ -39,7 +39,7 @@ class CustomAuthenticationEntryPointTest {
 
         String json = response.getContentAsString();
         assertThat(json).contains("\"statusCode\":401");
-        assertThat(json).contains("\"error\":\"Unauthorized\"");
+        assertThat(json).contains("\"errorCode\":\"INVALID_TOKEN\"");
         assertThat(json).contains("\"message\":\"Acceso no autorizado\"");
         assertThat(json).contains("\"timestamp\":");
         assertThat(json).contains("\"path\":\"/api/v1/protected\"");
@@ -47,7 +47,7 @@ class CustomAuthenticationEntryPointTest {
         // Deserializamos el JSON para validar todos los campos
         ApiError apiError = objectMapper.readValue(json, ApiError.class);
         assertThat(apiError.getStatusCode()).isEqualTo(401);
-        assertThat(apiError.getError()).isEqualTo("Unauthorized");
+        assertThat(apiError.getErrorCode().name()).isEqualTo("INVALID_TOKEN");
         assertThat(apiError.getMessage()).isEqualTo("Acceso no autorizado");
         assertThat(apiError.getPath()).isEqualTo("/api/v1/protected");
         assertThat(apiError.getTimestamp()).isNotNull();

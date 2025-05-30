@@ -1,88 +1,164 @@
 package com.cyberwallet.walletapi.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.core.AuthenticationException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
-@Slf4j
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 401 - No autenticado
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiError> handleAuthError(AuthenticationException ex, HttpServletRequest request) {
-        return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED, request.getRequestURI());
-    }
+    // 🔴 Handler existente: saldo insuficiente
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ApiError> handleInsufficientFunds(
+            InsufficientFundsException ex,
+            HttpServletRequest request) {
 
-    // 403 - Sin permisos
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
-        return buildErrorResponse(ex, HttpStatus.FORBIDDEN, request.getRequestURI());
-    }
-
-    // 400 - Validación de campos
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
-        String mensaje = ex.getBindingResult().getFieldErrors().stream()
-                .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                .collect(Collectors.joining(" | "));
-
-        ApiError error = ApiError.builder()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .error("Datos inválidos")
-                .message(mensaje)
-                .path(((ServletWebRequest) request).getRequest().getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    // Excepciones personalizadas
-    @ExceptionHandler({
-            UserNotFoundException.class,
-            EmailAlreadyUsedException.class,
-            InvalidCredentialsException.class,
-            InvalidTokenException.class
-    })
-    public ResponseEntity<ApiError> handleCustom(RuntimeException ex, WebRequest request) {
-        HttpStatus status = switch (ex.getClass().getSimpleName()) {
-            case "UserNotFoundException" -> HttpStatus.NOT_FOUND;
-            case "EmailAlreadyUsedException" -> HttpStatus.CONFLICT;
-            case "InvalidCredentialsException", "InvalidTokenException" -> HttpStatus.UNAUTHORIZED;
-            default -> HttpStatus.BAD_REQUEST;
-        };
-
-        return buildErrorResponse(ex, status, ((ServletWebRequest) request).getRequest().getRequestURI());
-    }
-
-    // Fallback general
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleAll(Exception ex, WebRequest request) {
-        log.error("🔴 [ERROR] {}: {}", ex.getClass().getSimpleName(), ex.getMessage());
-        return buildErrorResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, ((ServletWebRequest) request).getRequest().getRequestURI());
-    }
-
-    private ResponseEntity<ApiError> buildErrorResponse(Exception ex, HttpStatus status, String path) {
-        ApiError error = ApiError.builder()
-                .statusCode(status.value())
-                .error(status.getReasonPhrase())
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .errorCode(ErrorCode.INSUFFICIENT_FUNDS)
                 .message(ex.getMessage())
-                .path(path)
+                .details("Saldo disponible: " + ex.getAvailableBalance() + ", Monto solicitado: " + ex.getRequestedAmount())
+                .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        return new ResponseEntity<>(error, status);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(apiError);
+    }
+
+    // 🔴 JWT inválido
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidToken(
+            InvalidTokenException ex,
+            HttpServletRequest request) {
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .errorCode(ErrorCode.INVALID_TOKEN)
+                .message("Token inválido o expirado.")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+    // 🔴 Usuario no encontrado
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiError> handleUserNotFound(
+            UserNotFoundException ex,
+            HttpServletRequest request) {
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .errorCode(ErrorCode.RECIPIENT_NOT_FOUND)
+                .message(ex.getMessage())
+                .details(null)
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
+
+    // 🔴 Email duplicado
+    @ExceptionHandler(EmailAlreadyUsedException.class)
+    public ResponseEntity<ApiError> handleEmailAlreadyUsed(
+            EmailAlreadyUsedException ex,
+            HttpServletRequest request) {
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.CONFLICT.value())
+                .errorCode(ErrorCode.VALIDATION_ERROR)
+                .message(ex.getMessage())
+                .details(null)
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+    }
+
+    // 🔴 Credenciales inválidas
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiError> handleInvalidCredentials(
+            InvalidCredentialsException ex,
+            HttpServletRequest request) {
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .errorCode(ErrorCode.INVALID_TOKEN)
+                .message(ex.getMessage())
+                .details(null)
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+    // 🔴 AuthenticationException genérico
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuthenticationException(
+            AuthenticationException ex,
+            HttpServletRequest request) {
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .errorCode(ErrorCode.ACCESS_DENIED)
+                .message("Acceso no autorizado")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+    // 🔴 Validaciones de campos (MethodArgumentNotValidException)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+
+        String errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .errorCode(ErrorCode.VALIDATION_ERROR)
+                .message(errors)
+                .details(null)
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+    }
+
+    // 🔴 Handler genérico final
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGenericException(
+            Exception ex,
+            HttpServletRequest request) {
+
+        ApiError apiError = ApiError.builder()
+                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .errorCode(ErrorCode.INTERNAL_SERVER_ERROR)
+                .message("Ha ocurrido un error inesperado.")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
     }
 }

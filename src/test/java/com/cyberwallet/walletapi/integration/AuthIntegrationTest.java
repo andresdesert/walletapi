@@ -114,7 +114,8 @@ class AuthIntegrationTest {
         mockMvc.perform(get("/api/v1/user/me")
                         .header("Authorization", "Bearer " + fakeToken))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.statusCode").value(401));
+                .andExpect(jsonPath("$.statusCode").value(401))
+                .andExpect(jsonPath("$.errorCode").value("INVALID_TOKEN"));
     }
 
     @Test
@@ -122,6 +123,7 @@ class AuthIntegrationTest {
     void shouldFailAccessMeWithoutJwt() throws Exception {
         mockMvc.perform(get("/api/v1/user/me"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.statusCode").value(401));
+                .andExpect(jsonPath("$.statusCode").value(401))
+                .andExpect(jsonPath("$.errorCode").value("INVALID_TOKEN"));
     }
 }

@@ -36,11 +36,11 @@ public class AuthService {
                     )
             );
         } catch (AuthenticationException ex) {
-            throw new InvalidCredentialsException("Credenciales inválidas. Por favor revisá tu email y contraseña.");
+            throw new InvalidCredentialsException();
         }
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("No se encontró un usuario con el email: " + request.getEmail()));
+                .orElseThrow(() -> new UserNotFoundException(request.getEmail()));
 
         String jwtToken = jwtService.generateToken(user);
         return new AuthenticationResponse(jwtToken);
@@ -48,7 +48,7 @@ public class AuthService {
 
     public AuthenticationResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyUsedException("El email ya está registrado: " + request.getEmail());
+            throw new EmailAlreadyUsedException(request.getEmail());
         }
 
         var user = User.builder()
