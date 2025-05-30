@@ -10,4 +10,11 @@ import lombok.*;
 public class AuthenticationRequest {
     private String email;
     private String password;
+
+    @Override
+    public String toString() {
+        return "AuthenticationRequest{" +
+                "email='" + email + '\'' +
+                ", password='********'}";
+    }
 }

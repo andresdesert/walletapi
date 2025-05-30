@@ -11,6 +11,9 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.security.core.AuthenticationException;
+import jakarta.servlet.http.HttpServletRequest;
+
 
 import java.util.List;
 
@@ -79,6 +82,22 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("🧪 AuthenticationException devuelve 401")
+    void shouldHandleAuthenticationException() {
+        AuthenticationException ex = new AuthenticationException("No autenticado") {};
+        MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+        servletRequest.setRequestURI("/fake-uri");
+
+        ResponseEntity<ApiError> response = handler.handleAuthError(ex, (jakarta.servlet.http.HttpServletRequest) servletRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getMessage()).contains("No autenticado");
+        assertThat(response.getBody().getStatusCode()).isEqualTo(401);
+    }
+
+
+    @Test
     @DisplayName("🧪 MethodArgumentNotValidException devuelve 400 con detalles")
     void shouldHandleValidationExceptions() {
         BindingResult bindingResult = mock(BindingResult.class);
@@ -96,4 +115,17 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage()).contains("firstname: El nombre es obligatorio");
         assertThat(response.getBody().getMessage()).contains("email: Formato de email inválido");
     }
+    @Test
+    @DisplayName("🧪 Exception genérica devuelve 500")
+    void shouldHandleGenericException() {
+        Exception ex = new Exception("Falla genérica");
+
+        ResponseEntity<ApiError> response = handler.handleAll(ex, webRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getMessage()).contains("Falla genérica");
+        assertThat(response.getBody().getStatusCode()).isEqualTo(500);
+    }
+
 }

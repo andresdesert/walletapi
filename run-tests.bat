@@ -50,3 +50,9 @@ mvn surefire-report:report
 target/site/surefire-report.html
 
 mvn clean test '-Dspring.profiles.active=test'
+
+Para jacoco usar:
+
+mvn clean verify
+
+y el reporte con : target/site/jacoco/index.html
